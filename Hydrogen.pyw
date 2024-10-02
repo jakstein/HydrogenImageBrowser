@@ -8,18 +8,20 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Hydrogen")
         
-
         self.label = QLabel(self)
-        pixmap = QPixmap("test1.jpg")
-        self.ratio = pixmap.width() / pixmap.height()
-        self.label.setPixmap(pixmap)
-        self.label.setGeometry(0, 0, pixmap.width(), pixmap.height())
+        self.pixmap = QPixmap("test1.jpg")
+
+        #self.ratio = self.pixmap.width() / self.pixmap.height()
+
+        self.label.setPixmap(self.pixmap)
+        self.label.setGeometry(0, 0, self.pixmap.width(), self.pixmap.height())
         self.setGeometry(0, 0, self.label.width(), self.label.height()) # x, y, width, height
-        self.setMinimumSize(pixmap.width(), pixmap.height())
+        self.setMinimumSize(self.pixmap.width(), self.pixmap.height())
         self.label.setScaledContents(False)  
         self.setCentralWidget(self.label)
+
     def resizeEvent(self, event):
-        self.label.setGeometry(0, 0, self.width(), self.ratio * self.width())
+        self.label.setGeometry((self.width() - self.pixmap.width()) // 2, (self.height() - self.pixmap.height()) // 2, self.pixmap.width(), self.pixmap.height())
 
 
 
