@@ -54,17 +54,17 @@ class MainWindow(QMainWindow):
         self.updateLabel()
 
     def eventFilter(self, source, event, drag=[False], dragstart=[None]): # drag move behaviour | use default arguments to store variables in eventFilter
-        if event.type() == QEvent.MouseButtonPress:
+        if event.type() == QEvent.MouseButtonPress and source != self.rotationdial: 
             dragstart[0] = event.position()
             drag = True
         
-        elif event.type() == QEvent.MouseMove and drag: # update image position as it's being dragged
+        elif event.type() == QEvent.MouseMove and drag and source != self.rotationdial: # update image position as it's being dragged
             self.movex += event.position().x() - dragstart[0].x()
             self.movey += event.position().y() - dragstart[0].y()
             self.updateLabel()
             dragstart[0] = event.position()
 
-        elif event.type() == QEvent.MouseButtonRelease:
+        elif event.type() == QEvent.MouseButtonRelease and source != self.rotationdial:
             drag = False
             return True
 
