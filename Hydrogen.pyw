@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
             dragstart[0] = event.position()
             drag = True
         
-        elif event.type() == QEvent.MouseMove and drag and source != self.rotationdial: # update image position as it's being dragged
+        elif event.type() == QEvent.MouseMove and drag and source == self: # update image position as it's being dragged
             self.movex += event.position().x() - dragstart[0].x()
             self.movey += event.position().y() - dragstart[0].y()
             self.updateLabel()
@@ -80,6 +80,11 @@ class MainWindow(QMainWindow):
         
         if source == self.zoomslider and event.type() == QEvent.MouseButtonPress and event.button() == Qt.RightButton: # reset zoom slider if right clicked
             self.zoomslider.setValue(100)
+            self.updateLabel()
+            return True
+        
+        if source == self and event.type() == QEvent.Wheel:
+            self.zoomslider.setValue(self.zoomslider.value() + event.angleDelta().y() // 20)
             self.updateLabel()
             return True
         
