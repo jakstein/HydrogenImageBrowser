@@ -36,6 +36,7 @@ class MainWindow(QMainWindow):
         # event filters
         self.installEventFilter(self)
         self.rotationdial.installEventFilter(self)
+        self.zoomslider.installEventFilter(self)
 
     def updateLabel(self): # handle all label (image) transformations
         self.label.setGeometry(((self.width() - (self.pixmap.width() * self.zoomslider.value() / 100)) // 2) + self.movex, ((self.height() - (self.pixmap.height() * self.zoomslider.value() / 100)) // 2) + self.movey, self.pixmap.width() * self.zoomslider.value() / 100, self.pixmap.height() * self.zoomslider.value() / 100)
@@ -76,7 +77,12 @@ class MainWindow(QMainWindow):
             self.movex, self.movey = 0, 0
             self.updateLabel()
             return True
-
+        
+        if source == self.zoomslider and event.type() == QEvent.MouseButtonPress and event.button() == Qt.RightButton: # reset zoom slider if right clicked
+            self.zoomslider.setValue(100)
+            self.updateLabel()
+            return True
+        
         return super().eventFilter(source, event)
 
 browser = QApplication([])
