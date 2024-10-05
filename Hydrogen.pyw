@@ -72,6 +72,10 @@ class MainWindow(QMainWindow):
             self.updateLabel()
             return True
 
+        if source == self and event.type() == QEvent.MouseButtonPress and event.button() == Qt.RightButton: # reset image position if right clicked
+            self.movex, self.movey = 0, 0
+            self.updateLabel()
+            return True
 
         return super().eventFilter(source, event)
 
