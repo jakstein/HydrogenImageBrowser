@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QLineEdit, QDial, QSlider
-from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QDial, QSlider
+from PySide6.QtGui import QPixmap, QTransform
 from PySide6.QtCore import Qt, QEvent
 #import os
 #from PIL import Image, ImageQt
@@ -9,7 +9,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Hydrogen")
         self.movex, self.movey = 0, 0
-        
+
         # image/label stuff
         self.label = QLabel(self)
         self.pixmap = QPixmap("test1.jpg")
@@ -19,16 +19,24 @@ class MainWindow(QMainWindow):
         self.setGeometry(0, 0, self.label.width(), self.label.height()) # x, y, width, height
         self.setMinimumSize(self.pixmap.width(), self.pixmap.height())
 
-        self.installEventFilter(self)
+
 
         # zoom slider stuff
-        self.zoomslider = QSlider(self)
-        self.zoomslider.setOrientation(Qt.Vertical)
+        self.zoomslider = QSlider(Qt.Vertical, self)
         self.zoomslider.setGeometry(0, self.width(), 20, 300)
-        self.zoomslider.setMinimum(1)
-        self.zoomslider.setMaximum(500)
+        self.zoomslider.setRange(1, 500)
         self.zoomslider.setValue(100)
         self.zoomslider.valueChanged.connect(self.zoom_changed)
+
+        # dial stuff
+        self.rotationdial = QDial(self)
+        self.rotationdial.setGeometry(0, self.height()-75, 75, 75)
+        self.rotationdial.setRange(-180, 180)
+        self.rotationdial.setValue(0)
+        self.rotationdial.valueChanged.connect(self.rotate_image)
+
+        self.installEventFilter(self)
+        self.rotationdial.installEventFilter(self)
 
     def updateLabel(self): # handle all label transformations
         self.label.setGeometry(((self.width() - (self.pixmap.width() * self.zoomslider.value() / 100)) // 2) + self.movex, ((self.height() - (self.pixmap.height() * self.zoomslider.value() / 100)) // 2) + self.movey, self.pixmap.width() * self.zoomslider.value() / 100, self.pixmap.height() * self.zoomslider.value() / 100)
@@ -36,10 +44,15 @@ class MainWindow(QMainWindow):
     def resizeEvent(self, event):
         self.updateLabel()
         self.zoomslider.setGeometry(self.width() - 20, 0, 20, self.height())
-        
+        self.rotationdial.setGeometry(0, self.height()-75, 75, 75)
+
     def zoom_changed(self):
         self.updateLabel()
         
+    def rotate_image(self):
+        self.label.setPixmap(self.pixmap.transformed(QTransform().rotate(self.rotationdial.value())))
+        self.updateLabel()
+
     def eventFilter(self, source, event, drag=[False], dragstart=[None]): # drag move behaviour | use default arguments to store variables in eventFilter
         if event.type() == QEvent.MouseButtonPress:
             dragstart[0] = event.position()
@@ -54,12 +67,16 @@ class MainWindow(QMainWindow):
         elif event.type() == QEvent.MouseButtonRelease:
             drag = False
             return True
+
+        if source == self.rotationdial and event.type() == QEvent.MouseButtonPress and event.button() == Qt.RightButton:
+            self.rotationdial.setValue(0)
+            self.updateLabel()
+            return True
+
+
         return super().eventFilter(source, event)
 
 browser = QApplication([])
 basewindow = MainWindow()
-
-
-
 basewindow.show()
 browser.exec()
