@@ -19,8 +19,6 @@ class MainWindow(QMainWindow):
         self.setGeometry(0, 0, self.label.width(), self.label.height()) # x, y, width, height
         self.setMinimumSize(self.pixmap.width(), self.pixmap.height())
 
-
-
         # zoom slider stuff
         self.zoomslider = QSlider(Qt.Vertical, self)
         self.zoomslider.setGeometry(0, self.width(), 20, 300)
@@ -35,13 +33,14 @@ class MainWindow(QMainWindow):
         self.rotationdial.setValue(0)
         self.rotationdial.valueChanged.connect(self.rotate_image)
 
+        # event filters
         self.installEventFilter(self)
         self.rotationdial.installEventFilter(self)
 
-    def updateLabel(self): # handle all label transformations
+    def updateLabel(self): # handle all label (image) transformations
         self.label.setGeometry(((self.width() - (self.pixmap.width() * self.zoomslider.value() / 100)) // 2) + self.movex, ((self.height() - (self.pixmap.height() * self.zoomslider.value() / 100)) // 2) + self.movey, self.pixmap.width() * self.zoomslider.value() / 100, self.pixmap.height() * self.zoomslider.value() / 100)
 
-    def resizeEvent(self, event):
+    def resizeEvent(self, event): # handle scaling of widgets when window is resized
         self.updateLabel()
         self.zoomslider.setGeometry(self.width() - 20, 0, 20, self.height())
         self.rotationdial.setGeometry(0, self.height()-75, 75, 75)
@@ -49,7 +48,7 @@ class MainWindow(QMainWindow):
     def zoom_changed(self):
         self.updateLabel()
         
-    def rotate_image(self):
+    def rotate_image(self): # handle rotating image by creating a new pixmap with the rotated image using .transformed
         self.label.setPixmap(self.pixmap.transformed(QTransform().rotate(self.rotationdial.value())))
         self.updateLabel()
 
@@ -64,11 +63,11 @@ class MainWindow(QMainWindow):
             self.updateLabel()
             dragstart[0] = event.position()
 
-        elif event.type() == QEvent.MouseButtonRelease and source != self.rotationdial:
+        elif event.type() == QEvent.MouseButtonRelease and source != self.rotationdial: # finish dragging
             drag = False
             return True
 
-        if source == self.rotationdial and event.type() == QEvent.MouseButtonPress and event.button() == Qt.RightButton:
+        if source == self.rotationdial and event.type() == QEvent.MouseButtonPress and event.button() == Qt.RightButton: # reset rotation dial if right clicked
             self.rotationdial.setValue(0)
             self.updateLabel()
             return True
