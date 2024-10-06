@@ -1,15 +1,22 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QDial, QSlider, QFileDialog
-from PySide6.QtGui import QPixmap, QTransform
+from PySide6.QtGui import QPixmap, QTransform, QIcon, QGuiApplication
 from PySide6.QtCore import Qt,  QEvent
 import sys
 from PIL import Image, ImageQt
 import pillow_avif, pillow_jxl
+import ctypes
+
+# setup for windows taskbar icon to show up properly
+myappid = 'mycompany.myproduct.subproduct.version' 
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
+browser = QApplication([])
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Hydrogen")
-
+        self.setWindowIcon(QIcon("hydrogen_icon.png"))
         self.movement = {"x": 0, "y": 0}
         
         self.pixmap = self.getImage()
@@ -19,7 +26,7 @@ class MainWindow(QMainWindow):
         self.label.setPixmap(self.pixmap)
         self.label.setGeometry(0, 0, self.pixmap.width(), self.pixmap.height())
         self.label.setScaledContents(True)  
-        self.setGeometry(0, 0, self.label.width(), self.label.height())
+        self.setGeometry(0, 30, min(self.label.width(), QGuiApplication.primaryScreen().availableGeometry().width()), min(self.label.height(), QGuiApplication.primaryScreen().availableGeometry().height())) # set window size to image size or screen size if image is larger
 
         # zoom slider stuff
         self.zoomslider = QSlider(Qt.Vertical, self)
@@ -115,7 +122,6 @@ class MainWindow(QMainWindow):
         
         return super().eventFilter(source, event)
 
-browser = QApplication([])
 basewindow = MainWindow()
 basewindow.show()
 browser.exec()
