@@ -9,19 +9,17 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Hydrogen")
-        self.movex, self.movey = 0, 0
+
+        self.movement = {"x": 0, "y": 0}
         
         self.pixmap = self.getImage()
 
         # image/label stuff
         self.label = QLabel(self)
-       
-            
-        #self.pixmap = QPixmap("test1.jpg")
         self.label.setPixmap(self.pixmap)
         self.label.setGeometry(0, 0, self.pixmap.width(), self.pixmap.height())
         self.label.setScaledContents(True)  
-        self.setGeometry(0, 0, self.label.width(), self.label.height()) # x, y, width, height
+        self.setGeometry(0, 0, self.label.width(), self.label.height())
 
         # zoom slider stuff
         self.zoomslider = QSlider(Qt.Vertical, self)
@@ -62,7 +60,11 @@ class MainWindow(QMainWindow):
                 sys.exit()
 
     def updateLabel(self): # handle all label (image) transformations
-        self.label.setGeometry(((self.width() - (self.pixmap.width() * self.zoomslider.value() / 100)) // 2) + self.movex, ((self.height() - (self.pixmap.height() * self.zoomslider.value() / 100)) // 2) + self.movey, self.pixmap.width() * self.zoomslider.value() / 100, self.pixmap.height() * self.zoomslider.value() / 100)
+        self.label.setGeometry(
+            ((self.width() - (self.pixmap.width() * self.zoomslider.value() / 100)) // 2) + self.movement["x"],
+            ((self.height() - (self.pixmap.height() * self.zoomslider.value() / 100)) // 2) + self.movement["y"],
+            self.pixmap.width() * self.zoomslider.value() / 100,
+            self.pixmap.height() * self.zoomslider.value() / 100)
 
     def resizeEvent(self, event): # handle scaling of widgets when window is resized
         self.updateLabel()
@@ -82,8 +84,8 @@ class MainWindow(QMainWindow):
             drag = True
         
         elif event.type() == QEvent.MouseMove and drag and source == self: # update image position as it's being dragged
-            self.movex += event.position().x() - dragstart[0].x()
-            self.movey += event.position().y() - dragstart[0].y()
+            self.movement["x"] += event.position().x() - dragstart[0].x()   
+            self.movement["y"] += event.position().y() - dragstart[0].y()
             self.updateLabel()
             dragstart[0] = event.position()
 
@@ -97,7 +99,7 @@ class MainWindow(QMainWindow):
             return True
 
         if source == self and event.type() == QEvent.MouseButtonPress and event.button() == Qt.RightButton: # reset image position if right clicked
-            self.movex, self.movey = 0, 0
+            self.movement = {"x": 0, "y": 0}
             self.updateLabel()
             return True
         
