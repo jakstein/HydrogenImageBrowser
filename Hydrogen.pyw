@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QDial, QSlider, QFileDialog
 from PySide6.QtGui import QPixmap, QTransform, QIcon, QGuiApplication
 from PySide6.QtCore import Qt,  QEvent
-import sys
+import sys, os.path, os
 from PIL import Image, ImageQt
 import pillow_avif, pillow_jxl
 import ctypes
@@ -19,7 +19,9 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon("hydrogen_icon.png"))
         self.movement = {"x": 0, "y": 0}
         
-        self.pixmap = self.getImage()
+        self.getFirstImage()
+        #self.pixmap = QPixmap("testimages/test1.jpg")
+        #os.chdir(os.path.dirname("testimages/test1.jpg"))
 
         # image/label stuff
         self.label = QLabel(self)
@@ -42,29 +44,67 @@ class MainWindow(QMainWindow):
         self.rotationdial.setValue(0)
         self.rotationdial.valueChanged.connect(self.rotate_image)
 
+        # navigation buttons
+        self.nextbutton = QPushButton(">", self)
+        self.prevbutton = QPushButton("<", self)
+        self.nextbutton.setGeometry(self.width()-20, 0, 20, 20)
+        self.prevbutton.setGeometry(self.width()-40, 0, 20, 20)
+        self.nextbutton.setShortcut("Right")
+        self.prevbutton.setShortcut("Left")
+        self.nextbutton.clicked.connect(lambda: self.changeImage("next"))
+        self.prevbutton.clicked.connect(lambda: self.changeImage("prev"))
+
         # event filters
         self.installEventFilter(self)
         self.rotationdial.installEventFilter(self)
         self.zoomslider.installEventFilter(self)
+        self.prevbutton.installEventFilter(self)
+        self.nextbutton.installEventFilter(self)
 
-    def getImage(self): # get image from path
-        if len(sys.argv) > 1 and not sys.argv[1].endswith(".avif"): # try opening image from command line arguments | prefer direct qpixmap if not avif or jxl
-            return QPixmap(sys.argv[1])
-        elif len(sys.argv) > 1 and sys.argv[1].endswith(".avif"): # if command argument is avif, use pillow_avif to open it and convert to qpixmap
-            return ImageQt.toqpixmap(Image.open(sys.argv[1], formats=["avif"]))
-        elif len(sys.argv) > 1 and sys.argv[1].endswith(".jxl"): # if command argument is jxl, use pillow_jxl to open it and convert to qpixmap
-            return ImageQt.toqpixmap(Image.open(sys.argv[1], formats=["jxl"]))
+    def getFirstImage(self): # get initial image to display
+            if len(sys.argv) > 1: 
+                os.chdir(os.path.dirname(sys.argv[1])) 
+                self.path = sys.argv[1]
+                return self.loadImage(sys.argv[1])
 
-        else: # if no command argument, let user choose file
-            path = QFileDialog.getOpenFileName(self, "Open Image", 'c:\\', "Images (*.png *.jpg *.jpeg *.bmp *.gif *.avif *.jxl)")[0]
-            if path.endswith(".avif"): # if user chooses avif, use pillow_avif to open it and convert to qpixmap
-                return ImageQt.toqpixmap(Image.open(path, formats=["avif"]))
-            elif path.endswith(".jxl"): # if user chooses jxl, use pillow_jxl to open it and convert to qpixmap
-                return ImageQt.toqpixmap(Image.open(path, formats=["jxl"]))
-            elif path: # if user chooses any other image, open it with QPixmap
-                return QPixmap(path)
-            else: # if user cancels file dialog, exit
-                sys.exit()
+            else: # if no command argument, let user choose file
+                self.path = QFileDialog.getOpenFileName(self, "Open Image", os.getcwd(), "Images (*.png *.jpg *.jpeg *.bmp *.gif *.avif *.jxl)")[0]
+                if not self.path:
+                    sys.exit()
+                os.chdir(os.path.dirname(self.path))
+                return self.loadImage(self.path)
+    
+    def loadImage(self, path): # load image from path
+        self.setWindowTitle(f"Hydrogen - {os.path.basename(path)}")
+        if path.endswith(".avif"):
+            self.pixmap = ImageQt.toqpixmap(Image.open(path, formats=["avif"]))
+        elif path.endswith(".jxl"):
+            self.pixmap = ImageQt.toqpixmap(Image.open(path, formats=["jxl"]))
+        else:
+            self.pixmap = QPixmap(path)
+        
+    def changeImage(self, target): # change image to target image
+        filepaths = [os.path.join(os.getcwd(), file) for file in os.listdir() if file.endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif", ".avif", ".jxl"))]
+        currentImageIterator = filepaths.index(self.path.replace("/", "\\"))
+        match target:
+            case "next":
+                if currentImageIterator + 1 == len(filepaths):
+                    currentImageIterator = -1
+                self.loadImage(filepaths[currentImageIterator + 1])
+                self.path = filepaths[currentImageIterator + 1]
+            case "prev":
+                self.loadImage(filepaths[currentImageIterator - 1])
+                self.path = filepaths[currentImageIterator - 1]
+            case "first":
+                self.loadImage(filepaths[0])
+                self.path = filepaths[0]
+            case "last":
+                self.loadImage(filepaths[-1])
+                self.path = filepaths[-1]
+    
+        self.rotationdial.setValue(0)
+        self.label.setPixmap(self.pixmap)
+        self.updateLabel()
 
     def updateLabel(self): # handle all label (image) transformations
         self.label.setGeometry(
@@ -75,10 +115,12 @@ class MainWindow(QMainWindow):
 
     def resizeEvent(self, event): # handle scaling of widgets when window is resized
         self.updateLabel()
-        self.zoomslider.setGeometry(self.width() - 20, 0, 20, self.height())
+        self.zoomslider.setGeometry(self.width() - 20, 20, 20, self.height()-20)
         self.rotationdial.setGeometry(0, self.height()-75, 75, 75)
+        self.nextbutton.setGeometry(self.width()-20, 0, 20, 20)
+        self.prevbutton.setGeometry(self.width()-40, 0, 20, 20)
 
-    def zoom_changed(self):
+    def zoom_changed(self): # resize image when zoom slider is moved
         self.updateLabel()
         
     def rotate_image(self): # handle rotating image by creating a new pixmap with the rotated image using .transformed
@@ -96,7 +138,7 @@ class MainWindow(QMainWindow):
             self.updateLabel()
             dragstart[0] = event.position()
 
-        elif event.type() == QEvent.MouseButtonRelease and source == self: # finish dragging
+        elif event.type() == QEvent.MouseButtonRelease and source == self: 
             drag = False
             return True
 
@@ -120,7 +162,16 @@ class MainWindow(QMainWindow):
             self.updateLabel()
             return True
         
+        if source == self.prevbutton and event.type() == QEvent.MouseButtonPress and event.button() == Qt.RightButton:
+            self.changeImage("first")
+            return True
+        
+        elif source == self.nextbutton and event.type() == QEvent.MouseButtonPress and event.button() == Qt.RightButton:
+            self.changeImage("last")
+            return True
+        
         return super().eventFilter(source, event)
+
 
 basewindow = MainWindow()
 basewindow.show()
