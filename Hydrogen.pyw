@@ -157,6 +157,10 @@ class MainWindow(QMainWindow):
             self.updateLabel()
             return True
         
+        if event.type() == QEvent.Wheel and QApplication.keyboardModifiers() == Qt.ShiftModifier: # rotate image with mouse wheel
+            self.rotationdial.setValue(self.rotationdial.value() + event.angleDelta().y() // 20)
+            return True
+        
         if source == self and event.type() == QEvent.Wheel: # zoom in/out with mouse wheel
             self.zoomslider.setValue(self.zoomslider.value() + event.angleDelta().y() // 20)
             self.updateLabel()
@@ -170,6 +174,7 @@ class MainWindow(QMainWindow):
             self.changeImage("last")
             return True
         
+
         return super().eventFilter(source, event)
 
 
