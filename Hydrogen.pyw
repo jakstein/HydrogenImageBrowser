@@ -5,6 +5,7 @@ import sys, os.path, os
 from PIL import Image, ImageQt
 import pillow_avif, pillow_jxl
 import ctypes
+import math
 
 # setup for windows taskbar icon to show up properly
 myappid = 'mycompany.myproduct.subproduct.version' 
@@ -110,8 +111,8 @@ class MainWindow(QMainWindow):
         self.label.setGeometry(
             ((self.width() - (self.pixmap.width() * self.zoomslider.value() / 100)) // 2) + self.movement["x"],
             ((self.height() - (self.pixmap.height() * self.zoomslider.value() / 100)) // 2) + self.movement["y"],
-            self.pixmap.width() * self.zoomslider.value() / 100,
-            self.pixmap.height() * self.zoomslider.value() / 100)
+            abs((self.pixmap.width() * self.zoomslider.value() / 100)*(math.cos(math.radians(self.rotationdial.value())))) + abs((self.pixmap.height() * self.zoomslider.value() / 100)*(math.sin(math.radians(self.rotationdial.value())))),
+            abs((self.pixmap.height() * self.zoomslider.value() / 100)*(math.cos(math.radians(self.rotationdial.value())))) + abs((self.pixmap.width() * self.zoomslider.value() / 100)*(math.sin(math.radians(self.rotationdial.value())))))
 
     def resizeEvent(self, event): # handle scaling of widgets when window is resized
         self.updateLabel()
