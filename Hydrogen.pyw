@@ -1,11 +1,9 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QDial, QSlider, QFileDialog
-from PySide6.QtGui import QPixmap, QTransform, QIcon, QGuiApplication
+from PySide6.QtGui import QKeyEvent, QPixmap, QTransform, QIcon, QGuiApplication
 from PySide6.QtCore import Qt,  QEvent
-import sys, os.path, os
+import sys, os.path, os, ctypes, math
 from PIL import Image, ImageQt
 import pillow_avif, pillow_jxl
-import ctypes
-import math
 
 # setup for windows taskbar icon to show up properly
 myappid = 'mycompany.myproduct.subproduct.version' 
@@ -128,6 +126,21 @@ class MainWindow(QMainWindow):
         self.label.setPixmap(self.pixmap.transformed(QTransform().rotate(self.rotationdial.value())))
         self.updateLabel()
 
+    def keyPressEvent(self, event: QKeyEvent): 
+        if event.key() == Qt.Key_F and QApplication.keyboardModifiers() == Qt.ControlModifier:
+            self.label.setPixmap(self.pixmap.transformed(QTransform().scale(1, 1)))
+            self.updateLabel()
+
+        elif event.key() == Qt.Key_F and QApplication.keyboardModifiers() == Qt.ShiftModifier:
+            self.label.setPixmap(self.pixmap.transformed(QTransform().scale(1, -1)))
+            self.updateLabel()
+            
+        elif event.key() == Qt.Key_F:
+            self.label.setPixmap(self.pixmap.transformed(QTransform().scale(-1, 1)))
+            self.updateLabel()
+
+
+
     def eventFilter(self, source, event, drag=[False], dragstart=[None]): # handle mouse events | use default arguments to store variables in eventFilter
         if event.type() == QEvent.MouseButtonPress and source == self: # drag move start
             dragstart[0] = event.position()
@@ -175,9 +188,7 @@ class MainWindow(QMainWindow):
             self.changeImage("last")
             return True
         
-
         return super().eventFilter(source, event)
-
 
 basewindow = MainWindow()
 basewindow.show()
