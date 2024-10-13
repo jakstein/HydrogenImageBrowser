@@ -5,6 +5,11 @@ import sys, os.path, os, ctypes, math
 from PIL import Image, ImageQt
 import pillow_avif, pillow_jxl
 
+# TODO add sorting of images by name
+# TODO add make browser icon appear everywhere
+# TODO add "resize to fit" button
+
+
 # setup for windows taskbar icon to show up properly
 myappid = 'mycompany.myproduct.subproduct.version' 
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
@@ -26,7 +31,7 @@ class MainWindow(QMainWindow):
         self.label = QLabel(self)
         self.label.setPixmap(self.pixmap)
         self.label.setGeometry(0, 0, self.pixmap.width(), self.pixmap.height())
-        self.label.setScaledContents(True)  
+        self.label.setScaledContents(True)
         self.setGeometry(0, 30, min(self.label.width(), QGuiApplication.primaryScreen().availableGeometry().width()), min(self.label.height(), QGuiApplication.primaryScreen().availableGeometry().height())) # set window size to image size or screen size if image is larger
 
         # zoom slider stuff
@@ -59,6 +64,10 @@ class MainWindow(QMainWindow):
         self.zoomslider.installEventFilter(self)
         self.prevbutton.installEventFilter(self)
         self.nextbutton.installEventFilter(self)
+
+        if  self.pixmap.width() > (QGuiApplication.primaryScreen().availableGeometry().width() * 0.75) and self.pixmap.height() > (QGuiApplication.primaryScreen().availableGeometry().height() * 0.75):
+            self.showMaximized()
+            return
 
     def getFirstImage(self): # get initial image to display
             if len(sys.argv) > 1: 
