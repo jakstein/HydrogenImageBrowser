@@ -1,6 +1,6 @@
 # Hydrogen
 
-Hydrogen is a simple PySide6 application that displays an image and allows you to zoom and rotate it using a slider and a dial.
+Hydrogen is a simple PySide6-based image browser.
 
 ## Features
 
@@ -9,7 +9,19 @@ Hydrogen is a simple PySide6 application that displays an image and allows you t
 - Rotate the image using a dial (or scroll wheel over the dial)
 - Move the image by dragging it around
 - Reset move, zoom, rotation by just right-clicking on the element responsible for each
+- Navigate between images within a folder
 - More to come
+
+## Shortcuts
+- R: flip image horizontally
+- Shift + R: flip image vertically
+- Ctrl + R: reset flip
+- F: fit image to window
+
+- Right click on image: reset image position
+- Right click on rotation dial: reset rotation
+- Right click on zoom slider: reset zoom
+- Right click on next/prev button: go to first/last image
 
 ## Requirements
 
