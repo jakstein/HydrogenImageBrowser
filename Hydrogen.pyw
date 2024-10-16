@@ -22,19 +22,17 @@ Shortcuts:
 
 
 # TODO add sorting of images by name
-# TODO add make browser icon appear everywhere
 
 # setup for windows taskbar icon to show up properly
 myappid = 'mycompany.myproduct.subproduct.version' 
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-
 browser = QApplication([])
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Hydrogen")
-        self.setWindowIcon(QIcon("hydrogen_icon.png"))
+        self.setWindowIcon(QIcon(os.path.dirname(os.path.abspath(__file__)) + "\hydrogen_icon.png"))
         self.movement = {"x": 0, "y": 0}
         
         self.getFirstImage()
