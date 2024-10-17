@@ -9,7 +9,7 @@ Hydrogen is a simple PySide6-based image browser.
 - Rotate the image using a dial (or scroll wheel over the dial)
 - Move the image by dragging it around
 - Reset move, zoom, rotation by just right-clicking on the element responsible for each
-- Navigate between images within a folder
+- Navigate between images within a folder, sorted with natsort
 - More to come
 
 ## Shortcuts
@@ -30,6 +30,7 @@ Hydrogen is a simple PySide6-based image browser.
 - Pillow
 - pillow-avif
 - pillow-jxl
+- natsort
 
 ## Installation
 
@@ -41,7 +42,7 @@ Hydrogen is a simple PySide6-based image browser.
 
 2. Install the required packages:
     ```sh
-    pip install PySide6 Pillow pillow-avif pillow-jxl
+    pip install PySide6 Pillow pillow-avif pillow-jxl natsort
     ```
 
 ## Usage

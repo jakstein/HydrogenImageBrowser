@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt,  QEvent
 import sys, os.path, os, ctypes, math
 from PIL import Image, ImageQt
 import pillow_avif, pillow_jxl
+import natsort
 
 
 """
@@ -113,7 +114,7 @@ class MainWindow(QMainWindow):
     def scanDirectory(self): # scan directory for images
             self.filepaths.clear()
             self.filepaths = [os.path.join(os.getcwd(), file) for file in os.listdir() if file.endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif", ".avif", ".jxl"))]
-            self.filepaths.sort()
+            self.filepaths = natsort.natsorted(self.filepaths)
 
     def changeImage(self, target): # change image to target image
         if not self.filepaths:
@@ -138,6 +139,10 @@ class MainWindow(QMainWindow):
     
         self.rotationdial.setValue(0)
         self.label.setPixmap(self.pixmap)
+        if self.pixmap.width() > QGuiApplication.primaryScreen().availableGeometry().width() or self.pixmap.height() > QGuiApplication.primaryScreen().availableGeometry().height():
+            self.zoomslider.setValue(100*min(self.width()/self.pixmap.width(), self.height()/self.pixmap.height()))
+        else:
+            self.zoomslider.setValue(100)
         self.updateLabel()
 
     def updateLabel(self): # handle all label (image) transformations
