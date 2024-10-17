@@ -82,7 +82,9 @@ class MainWindow(QMainWindow):
 
         if  self.pixmap.width() > (QGuiApplication.primaryScreen().availableGeometry().width() * 0.75) and self.pixmap.height() > (QGuiApplication.primaryScreen().availableGeometry().height() * 0.75):
             self.showMaximized()
-            return
+            
+        if self.pixmap.width() > QGuiApplication.primaryScreen().availableGeometry().width() or self.pixmap.height() > QGuiApplication.primaryScreen().availableGeometry().height():
+            self.fitImage()
 
     def getFirstImage(self): # get initial image to display
             if len(sys.argv) > 1: 
@@ -140,7 +142,7 @@ class MainWindow(QMainWindow):
         self.rotationdial.setValue(0)
         self.label.setPixmap(self.pixmap)
         if self.pixmap.width() > QGuiApplication.primaryScreen().availableGeometry().width() or self.pixmap.height() > QGuiApplication.primaryScreen().availableGeometry().height():
-            self.zoomslider.setValue(100*min(self.width()/self.pixmap.width(), self.height()/self.pixmap.height()))
+            self.fitImage()
         else:
             self.zoomslider.setValue(100)
         self.updateLabel()
@@ -161,7 +163,10 @@ class MainWindow(QMainWindow):
 
     def zoom_changed(self): # resize image when zoom slider is moved
         self.updateLabel()
-        
+
+    def fitImage(self): # fit image to window
+        self.zoomslider.setValue(100*min(self.width()/self.pixmap.width(), self.height()/self.pixmap.height()))
+
     def rotate_image(self): # handle rotating image by creating a new pixmap with the rotated image using .transformed
         self.label.setPixmap(self.pixmap.transformed(QTransform().rotate(self.rotationdial.value())))
         self.updateLabel()
@@ -181,7 +186,7 @@ class MainWindow(QMainWindow):
                 self.label.setPixmap(self.pixmap.transformed(QTransform().scale(-1, 1)))
                 self.updateLabel()
             case (Qt.Key_F, Qt.NoModifier):
-                self.zoomslider.setValue(100*min(self.width()/self.pixmap.width(), self.height()/self.pixmap.height()))
+                self.fitImage()
 
     def eventFilter(self, source, event, drag=[False], dragstart=[None]): # handle mouse events | use default arguments to store variables in eventFilter
         if event.type() == QEvent.MouseButtonPress and source == self: # drag move start
