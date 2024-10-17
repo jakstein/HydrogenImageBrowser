@@ -20,8 +20,9 @@ Shortcuts:
 
 """
 
-
-# TODO add sorting of images by name
+# TODO add modules support
+# TODO add OCR module
+# TODO make zoom via scroll wheel zoom to cursor
 
 # setup for windows taskbar icon to show up properly
 myappid = 'mycompany.myproduct.subproduct.version' 
@@ -34,7 +35,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Hydrogen")
         self.setWindowIcon(QIcon(os.path.dirname(os.path.abspath(__file__)) + "\hydrogen_icon.png"))
         self.movement = {"x": 0, "y": 0}
-        
+        self.filepaths = []
         self.getFirstImage()
         #self.pixmap = QPixmap("testimages/test1.jpg")
         #os.chdir(os.path.dirname("testimages/test1.jpg"))
@@ -96,32 +97,44 @@ class MainWindow(QMainWindow):
                 return self.loadImage(self.path)
     
     def loadImage(self, path): # load image from path
-        self.setWindowTitle(f"Hydrogen - {os.path.basename(path)}")
-        if path.endswith(".avif"):
-            self.pixmap = ImageQt.toqpixmap(Image.open(path, formats=["avif"]))
-        elif path.endswith(".jxl"):
-            self.pixmap = ImageQt.toqpixmap(Image.open(path, formats=["jxl"]))
+        if not os.path.exists(path):
+            self.scanDirectory()
+            self.changeImage("next")
+            return
         else:
-            self.pixmap = QPixmap(path)
-        
+            self.setWindowTitle(f"Hydrogen - {os.path.basename(path)}")
+            if path.endswith(".avif"):
+                self.pixmap = ImageQt.toqpixmap(Image.open(path, formats=["avif"]))
+            elif path.endswith(".jxl"):
+                self.pixmap = ImageQt.toqpixmap(Image.open(path, formats=["jxl"]))
+            else:
+                self.pixmap = QPixmap(path)
+    
+    def scanDirectory(self): # scan directory for images
+            self.filepaths.clear()
+            self.filepaths = [os.path.join(os.getcwd(), file) for file in os.listdir() if file.endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif", ".avif", ".jxl"))]
+            self.filepaths.sort()
+
     def changeImage(self, target): # change image to target image
-        filepaths = [os.path.join(os.getcwd(), file) for file in os.listdir() if file.endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif", ".avif", ".jxl"))]
-        currentImageIterator = filepaths.index(self.path.replace("/", "\\"))
+        if not self.filepaths:
+            self.scanDirectory()
+
+        currentImageIterator = self.filepaths.index(self.path.replace("/", "\\"))
         match target:
             case "next":
-                if currentImageIterator + 1 == len(filepaths):
+                if currentImageIterator + 1 == len(self.filepaths):
                     currentImageIterator = -1
-                self.loadImage(filepaths[currentImageIterator + 1])
-                self.path = filepaths[currentImageIterator + 1]
+                self.loadImage(self.filepaths[currentImageIterator + 1])
+                self.path = self.filepaths[currentImageIterator + 1]
             case "prev":
-                self.loadImage(filepaths[currentImageIterator - 1])
-                self.path = filepaths[currentImageIterator - 1]
+                self.loadImage(self.filepaths[currentImageIterator - 1])
+                self.path = self.filepaths[currentImageIterator - 1]
             case "first":
-                self.loadImage(filepaths[0])
-                self.path = filepaths[0]
+                self.loadImage(self.filepaths[0])
+                self.path = self.filepaths[0]
             case "last":
-                self.loadImage(filepaths[-1])
-                self.path = filepaths[-1]
+                self.loadImage(self.filepaths[-1])
+                self.path = self.filepaths[-1]
     
         self.rotationdial.setValue(0)
         self.label.setPixmap(self.pixmap)
