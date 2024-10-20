@@ -23,7 +23,7 @@ Shortcuts:
 
 # TODO add modules support
 # TODO add OCR module
-# TODO make zoom via scroll wheel zoom to cursor
+# TODO improve scroll to cursor zooming
 
 # setup for windows taskbar icon to show up properly
 myappid = 'mycompany.myproduct.subproduct.version' 
@@ -224,6 +224,8 @@ class MainWindow(QMainWindow):
         
         if source == self and event.type() == QEvent.Wheel: # zoom in/out with mouse wheel
             self.zoomslider.setValue(self.zoomslider.value() + event.angleDelta().y() // 20)
+            self.movement["x"] = event.position().x() - self.width()/2 - (event.position().x() - self.width()/2) * self.zoomslider.value() / 100
+            self.movement["y"] = event.position().y() - self.height()/2 - (event.position().y() - self.height()/2) * self.zoomslider.value() / 100
             self.updateLabel()
             return True
         
