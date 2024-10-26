@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QDial, QSlider, QFileDialog
-from PySide6.QtGui import QKeyEvent, QPixmap, QTransform, QIcon, QGuiApplication
+from PySide6.QtGui import QKeyEvent, QPixmap, QTransform, QIcon, QGuiApplication, QImageReader
 from PySide6.QtCore import Qt,  QEvent
 import sys, os.path, os, ctypes, math
 from PIL import Image, ImageQt
@@ -28,7 +28,9 @@ Shortcuts:
 # setup for windows taskbar icon to show up properly
 myappid = 'mycompany.myproduct.subproduct.version' 
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
 browser = QApplication([])
+QImageReader.setAllocationLimit(1024) 
 
 class MainWindow(QMainWindow):
     def __init__(self):
