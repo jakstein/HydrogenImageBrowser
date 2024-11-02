@@ -1,12 +1,13 @@
 # Hydrogen
 
 Hydrogen is a simple PySide6-based image browser.
+[![image.png](https://i.postimg.cc/W1vWRr4D/image.png)](https://postimg.cc/F7Tg3Y3m)
 
 ## Features
 
-- Display an image
+- Display an image by selecting it in a prompt, or by passing it as arguments
 - Zoom in and out using a vertical slider or scroll wheel
-- Rotate the image using a dial (or scroll wheel over the dial)
+- Rotate the image using a dial (or scroll wheel over the dial) or shift + scroll
 - Move the image by dragging it around
 - Reset move, zoom, rotation by just right-clicking on the element responsible for each
 - Navigate between images within a folder, sorted with natsort
