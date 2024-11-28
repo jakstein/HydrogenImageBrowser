@@ -189,6 +189,11 @@ class MainWindow(QMainWindow):
                 self.updateLabel()
             case (Qt.Key_F, Qt.NoModifier):
                 self.fitImage()
+            case (Qt.Key_Delete, Qt.NoModifier):
+                if not self.filepaths:
+                    self.scanDirectory()
+                os.remove(self.path)
+                self.changeImage("next")
 
     def eventFilter(self, source, event, drag=[False], dragstart=[None]): # handle mouse events | use default arguments to store variables in eventFilter
         if event.type() == QEvent.MouseButtonPress and source == self: # drag move start

@@ -18,6 +18,7 @@ Hydrogen is a simple PySide6-based image browser.
 - Shift + R: flip image vertically
 - Ctrl + R: reset flip
 - F: fit image to window
+- Delete: delete currently displayed image
 
 - Right click on image: reset image position
 - Right click on rotation dial: reset rotation
