@@ -13,6 +13,7 @@ Shortcuts:
 - Shift + R: flip image vertically
 - Ctrl + R: reset flip
 - F: fit image to window
+- H: toggle UI elements
 
 - Right click on image: reset image position
 - Right click on rotation dial: reset rotation
@@ -39,6 +40,7 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon(os.path.dirname(os.path.abspath(__file__)) + "\hydrogen_icon.png"))
         self.movement = {"x": 0, "y": 0}
         self.filepaths = []
+        self.UIvisibile = True
         self.getFirstImage()
         #self.pixmap = QPixmap("testimages/test1.jpg")
         #os.chdir(os.path.dirname("testimages/test1.jpg"))
@@ -173,6 +175,12 @@ class MainWindow(QMainWindow):
         self.label.setPixmap(self.pixmap.transformed(QTransform().rotate(self.rotationdial.value())))
         self.updateLabel()
 
+    def UIvisibility(self): # manage display of UI elements
+        self.nextbutton.setVisible(self.UIvisibile)
+        self.prevbutton.setVisible(self.UIvisibile)
+        self.zoomslider.setVisible(self.UIvisibile)
+        self.rotationdial.setVisible(self.UIvisibile)
+
     def keyPressEvent(self, event: QKeyEvent): # handle key presses
         key = event.key()
         modifier = QApplication.keyboardModifiers()
@@ -194,6 +202,13 @@ class MainWindow(QMainWindow):
                     self.scanDirectory()
                 os.remove(self.path)
                 self.changeImage("next")
+            case (Qt.Key_H, Qt.NoModifier):
+                if self.UIvisibile:
+                    self.UIvisibile = False
+                else:
+                    self.UIvisibile = True
+                self.UIvisibility()
+
 
     def eventFilter(self, source, event, drag=[False], dragstart=[None]): # handle mouse events | use default arguments to store variables in eventFilter
         if event.type() == QEvent.MouseButtonPress and source == self: # drag move start
