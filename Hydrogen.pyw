@@ -26,8 +26,9 @@ Shortcuts:
 # TODO improve scroll to cursor zooming
 
 # setup for windows taskbar icon to show up properly
-myappid = 'mycompany.myproduct.subproduct.version' 
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+if sys.platform == "win32":
+    myappid = 'mycompany.myproduct.subproduct.version' 
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 browser = QApplication([])
 QImageReader.setAllocationLimit(1024) 
@@ -35,8 +36,8 @@ QImageReader.setAllocationLimit(1024)
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.abspath(__file__)), "hydrogen_icon.png")))
         self.setWindowTitle("Hydrogen")
-        self.setWindowIcon(QIcon(os.path.dirname(os.path.abspath(__file__)) + "\hydrogen_icon.png"))
         self.movement = {"x": 0, "y": 0}
         self.filepaths = []
         self.UIvisibile = True
