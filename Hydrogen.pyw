@@ -22,8 +22,7 @@ Shortcuts:
 
 """
 
-# TODO add modules support
-# TODO add OCR module
+# TODO add autohiding of elements when not moving
 # TODO improve scroll to cursor zooming
 
 # setup for windows taskbar icon to show up properly
@@ -59,6 +58,20 @@ class MainWindow(QMainWindow):
         self.zoomslider.setValue(100)
         self.zoomslider.valueChanged.connect(self.zoom_changed)
         self.zoomslider.setTickInterval(5)
+        self.zoomslider.setStyleSheet("""
+    QSlider::groove:vertical {
+        background: rgba(255, 255, 255, 80);
+        width: 8px;
+        border-radius: 4px;
+    }
+    QSlider::handle:vertical {
+        background: rgba(255, 255, 255, 150);
+        border: 1px solid rgba(0, 0, 0, 100);
+        height: 20px;
+        margin: -4px;
+        border-radius: 4px;
+    }
+""")
 
         # dial stuff
         self.rotationdial = QDial(self)
@@ -66,10 +79,42 @@ class MainWindow(QMainWindow):
         self.rotationdial.setRange(-180, 180)
         self.rotationdial.setValue(0)
         self.rotationdial.valueChanged.connect(self.rotate_image)
+        self.rotationdial.setStyleSheet("""
+    QDial {
+        background: rgba(255, 255, 255, 50);
+        border: 1px solid rgba(0, 0, 0, 50);
+        border-radius: 37px;  /* half of dial size (75/2) */
+    }
+    QDial::handle {
+        background: rgba(255, 255, 255, 150);
+        border: 1px solid rgba(0, 0, 0, 100);
+        border-radius: 5px;
+    }
+""")
 
         # navigation buttons
         self.nextbutton = QPushButton(">", self)
+        self.nextbutton.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 100);
+                border: 1px solid rgba(0, 0, 0, 50);
+                border-radius: 10px;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 150);
+            }
+        """)
         self.prevbutton = QPushButton("<", self)
+        self.prevbutton.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 100);
+                border: 1px solid rgba(0, 0, 0, 50);
+                border-radius: 10px;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 150);
+            }
+        """)
         self.nextbutton.setGeometry(self.width()-20, 0, 20, 20)
         self.prevbutton.setGeometry(self.width()-40, 0, 20, 20)
         self.nextbutton.setShortcut("Right")
@@ -102,7 +147,7 @@ class MainWindow(QMainWindow):
                     sys.exit()
                 os.chdir(os.path.dirname(self.path))
                 return self.loadImage(self.path)
-    
+
     def loadImage(self, path): # load image from path
         if not os.path.exists(path):
             self.scanDirectory()
