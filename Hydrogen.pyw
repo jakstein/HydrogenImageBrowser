@@ -41,6 +41,7 @@ class MainWindow(QMainWindow):
         self.movement = {"x": 0, "y": 0}
         self.filepaths = []
         self.UIvisibile = True
+        self.helpVisible = False
         self.getFirstImage()
         #self.pixmap = QPixmap("testimages/test1.jpg")
         #os.chdir(os.path.dirname("testimages/test1.jpg"))
@@ -122,6 +123,31 @@ class MainWindow(QMainWindow):
         self.prevbutton.setShortcut("Left")
         self.nextbutton.clicked.connect(lambda: self.changeImage("next"))
         self.prevbutton.clicked.connect(lambda: self.changeImage("prev"))
+
+        # help popup
+        self.helpPopup = QLabel(self)
+        self.helpPopup.setStyleSheet(
+            "background-color: rgba(0, 0, 0, 200);"
+            "border-radius: 15px; color: white; padding: 10px;"
+        )
+        help_text = (
+            "<b>Shortcuts:</b><br>"
+            "<span style='border:1px solid white; border-radius:3px; padding:2px;'>R</span>: Flip image horizontally<br>"
+            "<span style='border:1px solid white; border-radius:3px; padding:2px;'>Shift+R</span>: Flip image vertically<br>"
+            "<span style='border:1px solid white; border-radius:3px; padding:2px;'>Ctrl+R</span>: Reset flip<br>"
+            "<span style='border:1px solid white; border-radius:3px; padding:2px;'>F</span>: Fit image to window<br>"
+            "<span style='border:1px solid white; border-radius:3px; padding:2px;'>H</span>: Toggle UI elements<br>"
+            "<span style='border:1px solid white; border-radius:3px; padding:2px;'>Del</span>: Delete image<br>"
+            "<span style='border:1px solid white; border-radius:3px; padding:2px;'>Q</span>: Toggle this help popup<br>"
+            "Right click on image: Reset position<br>"
+            "Right click on rotation dial: Reset rotation<br>"
+            "Right click on zoom slider: Reset zoom<br>"
+            "Right click on next/prev button: Go to first/last image"
+        )
+        self.helpPopup.setText(help_text)
+        self.helpPopup.adjustSize()
+        self.helpPopup.move((self.width() - self.helpPopup.width()) // 2, (self.height() - self.helpPopup.height()) // 2)
+        self.helpPopup.setVisible(False)
 
         # event filters
         self.installEventFilter(self)
@@ -221,12 +247,6 @@ class MainWindow(QMainWindow):
         self.label.setPixmap(self.pixmap.transformed(QTransform().rotate(self.rotationdial.value())))
         self.updateLabel()
 
-    def UIvisibility(self): # manage display of UI elements
-        self.nextbutton.setVisible(self.UIvisibile)
-        self.prevbutton.setVisible(self.UIvisibile)
-        self.zoomslider.setVisible(self.UIvisibile)
-        self.rotationdial.setVisible(self.UIvisibile)
-
     def keyPressEvent(self, event: QKeyEvent): # handle key presses
         key = event.key()
         modifier = QApplication.keyboardModifiers()
@@ -249,12 +269,14 @@ class MainWindow(QMainWindow):
                 os.remove(self.path)
                 self.changeImage("next")
             case (Qt.Key_H, Qt.NoModifier):
-                if self.UIvisibile:
-                    self.UIvisibile = False
-                else:
-                    self.UIvisibile = True
-                self.UIvisibility()
-
+                self.UIvisibile = not self.UIvisibile
+                self.nextbutton.setVisible(self.UIvisibile)
+                self.prevbutton.setVisible(self.UIvisibile)
+                self.zoomslider.setVisible(self.UIvisibile)
+                self.rotationdial.setVisible(self.UIvisibile)
+            case (Qt.Key_Q, Qt.NoModifier):
+                self.helpVisible = not self.helpVisible
+                self.helpPopup.setVisible(self.helpVisible)
 
     def eventFilter(self, source, event, drag=[False], dragstart=[None]): # handle mouse events | use default arguments to store variables in eventFilter
         if event.type() == QEvent.MouseButtonPress and source == self: # drag move start
