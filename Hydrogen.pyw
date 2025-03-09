@@ -139,6 +139,7 @@ class MainWindow(QMainWindow):
             "<span style='border:1px solid white; border-radius:3px; padding:2px;'>H</span>: Toggle UI elements<br>"
             "<span style='border:1px solid white; border-radius:3px; padding:2px;'>Del</span>: Delete image<br>"
             "<span style='border:1px solid white; border-radius:3px; padding:2px;'>Q</span>: Toggle this help popup<br>"
+            "<span style='border:1px solid white; border-radius:3px; padding:2px;'>← →</span>: Previous/next image<br>"
             "Right click on image: Reset position<br>"
             "Right click on rotation dial: Reset rotation<br>"
             "Right click on zoom slider: Reset zoom<br>"
