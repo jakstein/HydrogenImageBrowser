@@ -1,7 +1,8 @@
 # Hydrogen
 
 Hydrogen is a simple PySide6-based image browser.
-[![image.png](https://i.postimg.cc/4xP1rSMM/image.png)](https://postimg.cc/21qvW2CF)
+
+[![image.png](https://i.postimg.cc/dQht4fYC/image.png)](https://postimg.cc/mhGsr8hZ)
 
 ## Features
 
