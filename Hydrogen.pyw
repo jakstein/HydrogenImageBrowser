@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QDial, QSlider, QFileDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QDial, QSlider, QFileDialog, QScrollArea, QWidget, QVBoxLayout
 from PySide6.QtGui import QKeyEvent, QPixmap, QTransform, QIcon, QGuiApplication, QImageReader
 from PySide6.QtCore import Qt,  QEvent
 import sys, os.path, os, ctypes, math
@@ -42,6 +42,7 @@ class MainWindow(QMainWindow):
         self.filepaths = []
         self.UIvisibile = True
         self.helpVisible = False
+        self.favbarVisible = False
         self.getFirstImage()
         #self.pixmap = QPixmap("testimages/test1.jpg")
         #os.chdir(os.path.dirname("testimages/test1.jpg"))
@@ -123,6 +124,17 @@ class MainWindow(QMainWindow):
         self.prevbutton.setShortcut("Left")
         self.nextbutton.clicked.connect(lambda: self.changeImage("next"))
         self.prevbutton.clicked.connect(lambda: self.changeImage("prev"))
+
+        # fav image bar
+        
+        self.favbar = QScrollArea(self)
+        self.favbar_widget = QWidget()
+        self.favbar_layout = QVBoxLayout()
+        self.favbar_widget.setLayout(self.favbar_layout)
+        self.favbar.setWidget(self.favbar_widget)
+        self.favbar.setWidgetResizable(True)
+        self.favbar.setGeometry(0, 0, 150, self.height())
+        self.favbar.setVisible(self.favbarVisible)
 
         # help popup
         self.helpPopup = QLabel(self)
@@ -237,6 +249,7 @@ class MainWindow(QMainWindow):
         self.rotationdial.setGeometry(0, self.height()-75, 75, 75)
         self.nextbutton.setGeometry(self.width()-20, 0, 20, 20)
         self.prevbutton.setGeometry(self.width()-40, 0, 20, 20)
+        self.favbar.setGeometry(0, 0, 150, self.height())
 
     def zoom_changed(self): # resize image when zoom slider is moved
         self.updateLabel()
@@ -278,6 +291,12 @@ class MainWindow(QMainWindow):
             case (Qt.Key_Q, Qt.NoModifier):
                 self.helpVisible = not self.helpVisible
                 self.helpPopup.setVisible(self.helpVisible)
+            case (Qt.Key_O, Qt.ShiftModifier):
+                # will be used to add currently displayed image to favorites
+                pass
+            case (Qt.Key_O, Qt.NoModifier):
+                self.favbarVisible = not self.favbarVisible
+                self.favbar.setVisible(self.favbarVisible)
 
     def eventFilter(self, source, event, drag=[False], dragstart=[None]): # handle mouse events | use default arguments to store variables in eventFilter
         if event.type() == QEvent.MouseButtonPress and source == self: # drag move start
