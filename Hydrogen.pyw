@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QDial, QSlider, QFileDialog, QScrollArea, QWidget, QVBoxLayout
-from PySide6.QtGui import QKeyEvent, QPixmap, QTransform, QIcon, QGuiApplication, QImageReader
+from PySide6.QtGui import QKeyEvent, QPixmap, QTransform, QIcon, QGuiApplication, QImageReader, QMovie
 from PySide6.QtCore import Qt,  QEvent
 import sys, os.path, os, ctypes, math
 from PIL import Image, ImageQt
@@ -43,15 +43,20 @@ class MainWindow(QMainWindow):
         self.UIvisibile = True
         self.helpVisible = False
         self.favbarVisible = False
-        self.getFirstImage()
-        #self.pixmap = QPixmap("testimages/test1.jpg")
-        #os.chdir(os.path.dirname("testimages/test1.jpg"))
-
+        self.movie = None
+        self.isAnimated = False
+        
         # image/label stuff
         self.label = QLabel(self)
-        self.label.setPixmap(self.pixmap)
+        
+        # now load the first image
+        self.getFirstImage()
+        
+        # set label geometry and content after image is loaded
+        if not self.isAnimated:
+            self.label.setScaledContents(True)
+            self.label.setPixmap(self.pixmap)
         self.label.setGeometry(0, 0, self.pixmap.width(), self.pixmap.height())
-        self.label.setScaledContents(True)
         self.setGeometry(0, 30, min(self.label.width(), QGuiApplication.primaryScreen().availableGeometry().width()), min(self.label.height(), QGuiApplication.primaryScreen().availableGeometry().height())) # set window size to image size or screen size if image is larger
 
         # zoom slider stuff
@@ -195,11 +200,38 @@ class MainWindow(QMainWindow):
             return
         else:
             self.setWindowTitle(f"Hydrogen - {os.path.basename(path)}")
-            if path.endswith(".avif"):
+            
+            # stop any existing animation
+            if self.movie:
+                self.movie.stop()
+                self.movie = None
+            
+            # check if this is an animated GIF
+            if path.lower().endswith(".gif"):
+                self.movie = QMovie(path)
+                if self.movie.frameCount() > 1:
+                    self.isAnimated = True
+                    self.label.setScaledContents(False)
+                    self.label.setMovie(self.movie)
+                    # get first frame as pixmap for transformations and sizing
+                    self.movie.jumpToFrame(0)
+                    self.pixmap = self.movie.currentPixmap()
+                    # set scaled size before starting
+                    self.movie.setScaledSize(self.pixmap.size())
+                    self.movie.start()
+                    return
+                else:
+                    self.movie = None
+                    self.isAnimated = False
+                    self.pixmap = QPixmap(path)
+            elif path.endswith(".avif"):
+                self.isAnimated = False
                 self.pixmap = ImageQt.toqpixmap(Image.open(path, formats=["avif"]))
             elif path.endswith(".jxl"):
+                self.isAnimated = False
                 self.pixmap = ImageQt.toqpixmap(Image.open(path, formats=["jxl"]))
             else:
+                self.isAnimated = False
                 self.pixmap = QPixmap(path)
     
     def scanDirectory(self): # scan directory for images
@@ -229,7 +261,9 @@ class MainWindow(QMainWindow):
                 self.path = self.filepaths[-1]
     
         self.rotationdial.setValue(0)
-        self.label.setPixmap(self.pixmap)
+        if not self.isAnimated:
+            self.label.setScaledContents(True)
+            self.label.setPixmap(self.pixmap)
         if self.pixmap.width() > QGuiApplication.primaryScreen().availableGeometry().width() or self.pixmap.height() > QGuiApplication.primaryScreen().availableGeometry().height():
             self.fitImage()
         else:
@@ -237,11 +271,19 @@ class MainWindow(QMainWindow):
         self.updateLabel()
 
     def updateLabel(self): # handle all label (image) transformations
-        self.label.setGeometry(
-            ((self.width() - (self.pixmap.width() * self.zoomslider.value() / 100)) // 2) + self.movement["x"],
-            ((self.height() - (self.pixmap.height() * self.zoomslider.value() / 100)) // 2) + self.movement["y"],
-            abs((self.pixmap.width() * self.zoomslider.value() / 100)*(math.cos(math.radians(self.rotationdial.value())))) + abs((self.pixmap.height() * self.zoomslider.value() / 100)*(math.sin(math.radians(self.rotationdial.value())))),
-            abs((self.pixmap.height() * self.zoomslider.value() / 100)*(math.cos(math.radians(self.rotationdial.value())))) + abs((self.pixmap.width() * self.zoomslider.value() / 100)*(math.sin(math.radians(self.rotationdial.value())))))
+        if self.isAnimated:
+            # for animated GIFs, only update geometry, don't interfere with the movie playback
+            self.label.setGeometry(
+                ((self.width() - (self.pixmap.width() * self.zoomslider.value() / 100)) // 2) + self.movement["x"],
+                ((self.height() - (self.pixmap.height() * self.zoomslider.value() / 100)) // 2) + self.movement["y"],
+                self.pixmap.width() * self.zoomslider.value() / 100,
+                self.pixmap.height() * self.zoomslider.value() / 100)
+        else:
+            self.label.setGeometry(
+                ((self.width() - (self.pixmap.width() * self.zoomslider.value() / 100)) // 2) + self.movement["x"],
+                ((self.height() - (self.pixmap.height() * self.zoomslider.value() / 100)) // 2) + self.movement["y"],
+                abs((self.pixmap.width() * self.zoomslider.value() / 100)*(math.cos(math.radians(self.rotationdial.value())))) + abs((self.pixmap.height() * self.zoomslider.value() / 100)*(math.sin(math.radians(self.rotationdial.value())))),
+                abs((self.pixmap.height() * self.zoomslider.value() / 100)*(math.cos(math.radians(self.rotationdial.value())))) + abs((self.pixmap.width() * self.zoomslider.value() / 100)*(math.sin(math.radians(self.rotationdial.value())))))
 
     def resizeEvent(self, event): # handle scaling of widgets when window is resized
         self.updateLabel()
@@ -252,13 +294,21 @@ class MainWindow(QMainWindow):
         self.favbar.setGeometry(0, 0, 150, self.height())
 
     def zoom_changed(self): # resize image when zoom slider is moved
+        if self.movie and self.isAnimated:
+            scaled_size = self.pixmap.size() * (self.zoomslider.value() / 100.0)
+            self.movie.setScaledSize(scaled_size)
         self.updateLabel()
 
     def fitImage(self): # fit image to window
         self.zoomslider.setValue(100*min(self.width()/self.pixmap.width(), self.height()/self.pixmap.height()))
 
     def rotate_image(self): # handle rotating image by creating a new pixmap with the rotated image using .transformed
-        self.label.setPixmap(self.pixmap.transformed(QTransform().rotate(self.rotationdial.value())))
+        if self.movie and self.isAnimated:
+            # pause animation during rotation and show transformed frame
+            self.movie.setPaused(True)
+            self.label.setPixmap(self.pixmap.transformed(QTransform().rotate(self.rotationdial.value())))
+        else:
+            self.label.setPixmap(self.pixmap.transformed(QTransform().rotate(self.rotationdial.value())))
         self.updateLabel()
 
     def keyPressEvent(self, event: QKeyEvent): # handle key presses
@@ -267,12 +317,18 @@ class MainWindow(QMainWindow):
 
         match (key, modifier):
             case (Qt.Key_R, Qt.ControlModifier):
+                if self.movie and self.isAnimated:
+                    self.movie.setPaused(True)
                 self.label.setPixmap(self.pixmap.transformed(QTransform().scale(1, 1)))
                 self.updateLabel()
             case (Qt.Key_R, Qt.ShiftModifier):
+                if self.movie and self.isAnimated:
+                    self.movie.setPaused(True)
                 self.label.setPixmap(self.pixmap.transformed(QTransform().scale(1, -1)))
                 self.updateLabel()
             case (Qt.Key_R, Qt.NoModifier):
+                if self.movie and self.isAnimated:
+                    self.movie.setPaused(True)
                 self.label.setPixmap(self.pixmap.transformed(QTransform().scale(-1, 1)))
                 self.updateLabel()
             case (Qt.Key_F, Qt.NoModifier):
